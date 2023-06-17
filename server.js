@@ -1,18 +1,16 @@
 const mysql = require("mysql2")
 const inquirer = require("inquirer");
-const { default: Choices } = require("inquirer/lib/objects/choices");
+
 
 
 const db = mysql.createConnection(
   {
     host: 'localhost',
-    // MySQL username,
     user: 'root',
-    // TODO: Add MySQL password here
-    password: 'lavender',
-    database: 'movies_db'
+    password: 'Rocket$!1',
+    database: 'employees_db'
   },
-  console.log(`Connected to the movies_db database.`)
+  console.log(`Connected to the employees_db database.`)
 );
 
 const initialQuestion = () => {
@@ -74,3 +72,103 @@ function viewAllEmployees() {
     }
   })
 };
+
+function viewAllRoles() {
+  db.query("SELECT * FROM role", (err, result) => {
+    if (err) {
+      console.log(err)
+    }
+    else {
+      console.table(result)
+      initialQuestion()
+    }
+  })
+};
+
+function viewAllDepartments() {
+  db.query("SELECT * FROM department", (err, result) => {
+    if (err) {
+      console.log(err)
+    }
+    else {
+      console.table(result)
+      initialQuestion()
+    }
+  })
+};
+
+function addRole() {
+  db.promise().query("SELECT department.department_name, department.id FROM department")
+    .then(([res]) => {
+      inquirer.prompt([
+        {
+          type: "input",
+          message: "What is the name of this role?",
+          name: "newRole"
+        },
+        {
+          type: "input",
+          message: "What is the salary of this role?",
+          name: "salary",
+        },
+        {
+          type: "list",
+          message: "What department does this role belong to?",
+          name: "owner",
+
+          choices: [{ name: "Engineering", value: "1" }, { name: "Finance", value: "2" }, { name: "Legal", value: "3" }, { name: "Sales", value: "4" }],
+        },
+      ]).then(answers => {
+        const role = {
+          title: answers.newRole, salary: answers.salary, department_id: answers.owner
+        }
+        console.log(answers)
+        initialQuestion();
+      })
+    })
+};
+
+function addEmployee() {
+  inquirer.prompt([
+    {
+      type: "input",
+      message: "What is the employee's first name?",
+      name: "firstName",
+    },
+    {
+      type: "input",
+      message: "What is the employee's last name?",
+      name: "lastName",
+    },
+    {
+      type: "input",
+      message: "What is this employee's role?",
+      name: "role",
+    },
+    {
+      type: "list",
+      message: "Who is the employee's manager?",
+      name: "manager",
+
+      choices: ["Colton Smith", "Blake Hargens", "Natasha Smith", "Nathan Henderson"]
+    },
+  ])
+  .then(
+
+    answers => {
+      const sql = `INSERT INTO employees (first_name, last_name)
+    VALUES (?)`;
+      const params = [answers.first_name, answers.last_name]
+      db.query(sql, params, (err, result) => {
+        if (err) {
+          console.log(err)
+        } else {
+          initialQuestion()
+        };
+      });
+    }
+  )
+};
+
+
+initialQuestion();
