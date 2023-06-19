@@ -98,33 +98,35 @@ function viewAllDepartments() {
 };
 
 function addRole() {
-  db.promise().query("SELECT department.department_name, department.id FROM department")
-    .then(([res]) => {
-      inquirer.prompt([
-        {
-          type: "input",
-          message: "What is the name of this role?",
-          name: "newRole"
-        },
-        {
-          type: "input",
-          message: "What is the salary of this role?",
-          name: "salary",
-        },
-        {
-          type: "list",
-          message: "What department does this role belong to?",
-          name: "owner",
+  inquirer.prompt([
+    {
+      type: "input",
+      message: "What is the name of this role?",
+      name: "newRole"
+    },
+    {
+      type: "input",
+      message: "What is the salary of this role?",
+      name: "salary",
+    },
+    {
+      type: "list",
+      message: "Which department does this role belong to?",
+      name: "owner",
 
-          choices: [{ name: "Engineering", value: "1" }, { name: "Finance", value: "2" }, { name: "Legal", value: "3" }, { name: "Sales", value: "4" }],
-        },
-      ]).then(answers => {
-        const role = {
-          title: answers.newRole, salary: answers.salary, department_id: answers.owner
+      choices: [{ name: "Engineering", value: "1" }, { name: "Finance", value: "2" }, { name: "Legal", value: "3" }, { name: "Sales", value: "4" }],
+    },
+  ]).then(
+    answers => {
+      const sql = "INSERT INTO role (title,salary,department_id) VALUES (?,?,?)"
+      db.query(sql, [answers.newRole, answers.salary, parseInt(answers.owner)], (err, res) => {
+        if (err) {
+          console.log(err)
         }
-        console.log(answers)
-        initialQuestion();
+        console.log("role has been added")
       })
+      console.log(answers)
+      initialQuestion();
     })
 };
 
@@ -141,24 +143,48 @@ function addEmployee() {
       name: "lastName",
     },
     {
-      type: "input",
+      type: "list",
       message: "What is this employee's role?",
       name: "role",
+
+      choices: [{ name: "Sofware Engineer", value: "1" }, { name: "Accountant", value: "2" }, { name: "Lawyer", value: "3" }, { name: "Sales Representitive", value: "4" }]
     },
     {
       type: "list",
       message: "Who is the employee's manager?",
       name: "manager",
 
-      choices: ["Colton Smith", "Blake Hargens", "Natasha Smith", "Nathan Henderson"]
+      choices: [{name: "Michael Manhxaythavong", value: "1"},{ name: "Colton Smith", value: "2" }, {name: "Nathan Henderson", value: "3"}, { name: "Blake Hargens", value: "4" }]
     },
-  ])
-  .then(
-
+  ]).then(
     answers => {
-      const sql = `INSERT INTO employees (first_name, last_name)
+      const sql = `INSERT INTO employees (first_name, last_name, role_id, manager_id)
+    VALUES (?,?,?,?)`;
+      const params = [answers.firstName, answers.lastName, parseInt(answers.role), parseInt(answers.manager)]
+      db.query(sql, params, (err, result) => {
+        if (err) {
+          console.log(err)
+        } else {
+          console.log("employee added")
+          initialQuestion()
+        };
+      });
+    }
+  )
+};
+
+function addDepartment() {
+  inquirer.prompt([
+    {
+      type: "input",
+      message: "What is the name of the department?",
+      name: "department",
+    },
+  ]).then(
+    answers => {
+      const sql = `INSERT INTO department (department_name)
     VALUES (?)`;
-      const params = [answers.first_name, answers.last_name]
+      const params = [answers.department]
       db.query(sql, params, (err, result) => {
         if (err) {
           console.log(err)
@@ -169,6 +195,38 @@ function addEmployee() {
     }
   )
 };
+
+function updateEmployeeRole() {
+  inquirer.prompt([
+    {
+      type: "list",
+      message: "Which employee's role do you want update?",
+      name: "update",
+
+      choices: [{name: "Michael Manhxaythavong", value: "1"},{ name: "Colton Smith", value: "2" }, {name: "Nathan Henderson", value: "3"}, { name: "Blake Hargens", value: "4" }]
+    },
+    {
+      type: "list",
+      message: "Which role do you want to assign the selected employee?",
+      name: "selectDepartment",
+
+      choices: [{ name: "Sofware Engineer", value: "1" }, { name: "Accountant", value: "2" }, { name: "Lawyer", value: "3" }, { name: "Sales Representitive", value: "4" }]
+    }
+  ]).then(
+    answers => {
+      const sql = "UPDATE employees SET role_id = ? WHERE id = ?";
+      const params = [answers.update, answers.selectDepartment]
+      db.query(sql, params, (err, result) => {
+        if (err) {
+          console.log(err)
+        } else {
+          initialQuestion()
+        }
+      })
+    }
+  )
+};
+
 
 
 initialQuestion();
