@@ -34,4 +34,4 @@
 
 ![github](https://github.com/mmanhx90)
 
-![github repo link]
+![github repo link](https://github.com/mmanhx90/employee-tracker-hw12)
